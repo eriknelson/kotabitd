@@ -1,0 +1,31 @@
+#!/bin/bash
+# glide-unlink
+# Un-link a dependent Go package from the current package.
+# Expects one argument, the go import path for the package, e.g. github.com/organization/repository
+
+BACKUP_SUFFIX=_glide-link_bak
+
+if [ -z "$1" ] ; then
+  echo "1 argument required, the go import path, e.g. github.com/organization/repository; $# arguments provided"
+  exit 1
+fi
+
+ABS_DEPENDENCY_PATH=$GOPATH/src/$1
+REL_VENDOR_PATH=vendor/$1
+REL_VENDOR_BACKUP_PATH=$REL_VENDOR_PATH$BACKUP_SUFFIX
+
+if [ ! -e $REL_VENDOR_BACKUP_PATH ] ; then
+  echo "Nothing to do: $REL_VENDOR_BACKUP_PATH does not exist, meaning $1 is NOT linked."
+  exit 1
+fi
+
+ABS_DEPENDENCY_VENDOR_BACKUP_PATH=$ABS_DEPENDENCY_PATH/vendor$BACKUP_SUFFIX
+if [ -e $ABS_DEPENDENCY_VENDOR_BACKUP_PATH ] ; then
+  mv $ABS_DEPENDENCY_VENDOR_BACKUP_PATH $ABS_DEPENDENCY_PATH/vendor
+else
+  echo "Notice: No backup of /vendor directory in dependent package path: $ABS_DEPENDENCY_VENDOR_BACKUP_PATH does not exist. Proceeding with unlink anyway..."
+fi
+
+# Remove the symbolic link to the dependent package on the GOPATH first then restore the backup directory
+rm $REL_VENDOR_PATH
+mv $REL_VENDOR_BACKUP_PATH $REL_VENDOR_PATH

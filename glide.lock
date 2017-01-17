@@ -1,0 +1,10 @@
+hash: 1800497a8fe9cc3a47fc6cd52ee8c66ee7bfb4f34b055cf2717323df51338837
+updated: 2017-01-16T18:59:07.09687749-05:00
+imports:
+- name: github.com/eriknelson/kotabit
+  version: 0eefaf017a58210093f3ee4ddb2a0dc9664a674d
+- name: github.com/jessevdk/go-flags
+  version: 8bc97d602c3bfeb5fc6fc9b5a9c898f245495637
+- name: github.com/pborman/uuid
+  version: a97ce2ca70fa5a848076093f05e639a89ca34d06
+testImports: []

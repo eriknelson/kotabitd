@@ -1,0 +1,49 @@
+#!/bin/bash
+# glide-link
+# Link a dependent Go package to the current package.
+# Expects one argument, the go import path for the package, e.g. github.com/organization/repository
+
+BACKUP_SUFFIX=_glide-link_bak
+
+if [ -z "$1" ] ; then
+  echo "1 argument required, the go import path, e.g. github.com/organization/repository; $# arguments provided"
+  exit 1
+fi
+
+ABS_DEPENDENCY_PATH=$GOPATH/src/$1
+REL_VENDOR_PATH=vendor/$1
+REL_VENDOR_BACKUP_PATH=$REL_VENDOR_PATH$BACKUP_SUFFIX
+
+if [ $ABS_DEPENDENCY_PATH == `pwd` ] ; then
+  echo "Cannot link a package to itself"
+  exit 1
+fi
+
+#  If the dependent package is already linked, or if it doesn't exist in both GOPATH and the vendor dir, fail fast
+if [ -e $REL_VENDOR_BACKUP_PATH ] ; then
+  echo "Nothing to do: $REL_VENDOR_BACKUP_PATH already exists, meaning $1 is already linked"
+  exit 1
+fi
+if [ ! -e $ABS_DEPENDENCY_PATH ] ; then
+  echo "No dependent package in GOPATH: $ABS_DEPENDENCY_PATH does not exist, meaning $1 is not on the GOPATH"
+  exit 1
+fi
+if [ ! -e $REL_VENDOR_PATH ] ; then
+  echo "No dependent package in /vendor: $REL_VENDOR_PATH does not exist, meaning $1 is either not part of the Glide dependencies for this package, or dependencies haven't been installed. Did you forget to run 'glide install' first?"
+  exit 1
+fi
+
+ABS_DEPENDENCY_VENDOR_PATH=$ABS_DEPENDENCY_PATH/vendor
+if [ -e $ABS_DEPENDENCY_VENDOR_PATH ] ; then
+  # You must move the /vendor dir from the dependent package, otherwise you get path errors related to the nested /vendor dir during compile time package resolution.  See here:
+  # https://github.com/mattfarina/golang-broken-vendor
+  mv $ABS_DEPENDENCY_VENDOR_PATH $ABS_DEPENDENCY_VENDOR_PATH$BACKUP_SUFFIX
+else
+  echo "Notice: No /vendor directory in dependent package path: $ABS_DEPENDENCY_VENDOR_PATH does not exist. Were you expecting $1 dependencies to be managed by Glide?  Proceeding with link anyway..."
+fi
+
+
+mv $REL_VENDOR_PATH $REL_VENDOR_BACKUP_PATH
+
+ln -s $ABS_DEPENDENCY_PATH $REL_VENDOR_PATH
+ls -la $REL_VENDOR_PATH

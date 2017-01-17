@@ -1,0 +1,5 @@
+package: github.com/eriknelson/kotabitd
+import:
+- package: github.com/eriknelson/kotabit
+- package: github.com/jessevdk/go-flags
+  version: ^1.1.0
